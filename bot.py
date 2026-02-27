@@ -1,11 +1,12 @@
 import os
-import asyncio
-import threading
-from flask import Flask
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+import logging
+from flask import Flask, request
+from telegram import Bot, Update
 
-# ─── خادم ويب صغير يبقي البوت شغّال ───
+BOT_TOKEN = os.environ["BOT_TOKEN"]
+bot = Bot(token=BOT_TOKEN)
+logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
 
 @app.route("/")
@@ -16,33 +17,24 @@ def home():
 def health():
     return "OK"
 
-def run_web():
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
-
-# ─── أوامر البوت (عدّل هنا كما تريد) ───
-async def start(update: Update, context):
-    await update.message.reply_text("مرحباً! البوت يعمل 🟢")
-
-async def echo(update: Update, context):
-    await update.message.reply_text(update.message.text)
-
-# ─── التشغيل ───
-async def main():
-    bot = Application.builder().token(os.environ["BOT_TOKEN"]).build()
-    bot.add_handler(CommandHandler("start", start))
-    bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    await bot.initialize()
-    await bot.start()
-    await bot.updater.start_polling()
-
-    # إبقاء البوت شغّال
-    while True:
-        await asyncio.sleep(3600)
+@app.route(f"/{BOT_TOKEN}", methods=["POST"])
+def webhook():
+    data = request.get_json()
+    if data and "message" in data:
+        chat_id = data["message"]["chat"]["id"]
+        text = data["message"].get("text", "")
+        if text == "/start":
+            bot.send_message(chat_id=chat_id, text="مرحباً! البوت يعمل 🟢")
+        elif text.startswith("/"):
+            bot.send_message(chat_id=chat_id, text="أمر غير معروف. أرسل /start")
+        else:
+            bot.send_message(chat_id=chat_id, text=f"لقد أرسلت: {text}")
+    return "OK"
 
 if __name__ == "__main__":
-    # تشغيل Flask في thread منفصل
-    threading.Thread(target=run_web, daemon=True).start()
-
-    # تشغيل البوت
-    asyncio.run(main())
+    PORT = int(os.environ.get("PORT", 8080))
+    RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "")
+    webhook_url = f"{RENDER_URL}/{BOT_TOKEN}"
+    bot.set_webhook(url=webhook_url)
+    print(f"Webhook set: {webhook_url}")
+    app.run(host="0.0.0.0", port=PORT)
