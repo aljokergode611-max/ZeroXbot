@@ -1,40 +1,60 @@
 import os
 import logging
-from flask import Flask, request
-from telegram import Bot, Update
+import requests
+from flask import Flask, request as flask_request
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
-bot = Bot(token=BOT_TOKEN)
+API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+
+
+def send_message(chat_id, text):
+    """إرسال رسالة عبر Telegram API مباشرة"""
+    url = f"{API_URL}/sendMessage"
+    payload = {"chat_id": chat_id, "text": text}
+    resp = requests.post(url, json=payload)
+    logging.info(f"sendMessage response: {resp.status_code}")
+    return resp
+
 
 @app.route("/")
 def home():
     return "Bot is running!"
 
+
 @app.route("/health")
 def health():
     return "OK"
 
+
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
 def webhook():
-    data = request.get_json()
+    data = flask_request.get_json()
+    logging.info(f"Received update: {data}")
+
     if data and "message" in data:
         chat_id = data["message"]["chat"]["id"]
         text = data["message"].get("text", "")
+
         if text == "/start":
-            bot.send_message(chat_id=chat_id, text="مرحباً! البوت يعمل 🟢")
+            send_message(chat_id, "مرحباً! البوت يعمل 🟢")
         elif text.startswith("/"):
-            bot.send_message(chat_id=chat_id, text="أمر غير معروف. أرسل /start")
+            send_message(chat_id, "أمر غير معروف. أرسل /start")
         else:
-            bot.send_message(chat_id=chat_id, text=f"لقد أرسلت: {text}")
+            send_message(chat_id, f"لقد أرسلت: {text}")
+
     return "OK"
+
 
 if __name__ == "__main__":
     PORT = int(os.environ.get("PORT", 8080))
     RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "")
+
+    # تسجيل الـ Webhook
     webhook_url = f"{RENDER_URL}/{BOT_TOKEN}"
-    bot.set_webhook(url=webhook_url)
-    print(f"Webhook set: {webhook_url}")
+    resp = requests.post(f"{API_URL}/setWebhook", json={"url": webhook_url})
+    logging.info(f"Webhook set: {webhook_url} -> {resp.json()}")
+
     app.run(host="0.0.0.0", port=PORT)
