@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ZeroX" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#FF00FF41</item>
+        <item name="android:colorPrimaryDark">#FF080808</item>
+        <item name="android:colorAccent">#FFCC0033</item>
+        <item name="android:windowBackground">#FF080808</item>
+        <item name="android:statusBarColor">#FF080808</item>
+        <item name="android:navigationBarColor">#FF080808</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

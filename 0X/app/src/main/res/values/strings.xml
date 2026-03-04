@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zero X</string>
+    <string name="xposed_description">Zero X - وحدة التخفي المتقدمة | إخفاء الروت + تزييف الموقع + تزييف الجهاز</string>
+</resources>
