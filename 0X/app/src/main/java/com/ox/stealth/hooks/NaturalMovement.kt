@@ -28,14 +28,14 @@ import java.util.Random as JavaRandom
  */
 object NaturalMovement {
 
-    // ثوابت الحركة
+    // ثوابت الحركة - أبطأ وأكثر واقعية
     private const val EARTH_RADIUS = 6371000.0 // متر
-    private const val WALK_SPEED_MIN = 1.0f     // م/ث
-    private const val WALK_SPEED_MAX = 1.8f     // م/ث
-    private const val RUN_SPEED_MIN = 2.5f      // م/ث
-    private const val RUN_SPEED_MAX = 4.0f      // م/ث
-    private const val DRIVE_SPEED_MIN = 8.0f    // م/ث
-    private const val DRIVE_SPEED_MAX = 30.0f   // م/ث
+    private const val WALK_SPEED_MIN = 0.8f     // م/ث (بطيء)
+    private const val WALK_SPEED_MAX = 1.4f     // م/ث (متوسط)
+    private const val RUN_SPEED_MIN = 2.0f      // م/ث
+    private const val RUN_SPEED_MAX = 3.5f      // م/ث
+    private const val DRIVE_SPEED_MIN = 5.0f    // م/ث
+    private const val DRIVE_SPEED_MAX = 20.0f   // م/ث
 
     // حالة الحركة
     private var isMoving = false
@@ -104,8 +104,8 @@ object NaturalMovement {
                         LocationHook.updateMovement(currentSpeed, currentBearing)
                     }
 
-                    // تحديث كل 1-2 ثانية (مثل GPS حقيقي)
-                    Thread.sleep(1000 + Random.nextLong(1000))
+                    // تحديث كل 2-4 ثانية (أبطأ وأكثر واقعية)
+                    Thread.sleep(2000 + Random.nextLong(2000))
                 } catch (_: Exception) {
                     Thread.sleep(2000)
                 }

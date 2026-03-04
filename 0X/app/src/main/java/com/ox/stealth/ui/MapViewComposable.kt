@@ -162,26 +162,16 @@ val CARTO_DARK = object : OnlineTileSourceBase(
 // ===================== أنواع الخرائط =====================
 
 enum class MapLayer(val title: String, val icon: String) {
-    DARK("مظلم", "🌑"),
+    ROADS("عادي", "🗺️"),
     SATELLITE("أقمار صناعية", "🛰️"),
-    HYBRID("هجين", "🗺️"),
-    TERRAIN("تضاريس", "⛰️"),
-    ROADS("طرق", "🛣️"),
-    TOPO("طبوغرافي", "🏔️"),
-    CYCLING("مسارات", "🚴"),
-    ESRI("ESRI HD", "📡"),
+    HYBRID("هجين", "🌍"),
 }
 
 fun getMapTileSource(layer: MapLayer): OnlineTileSourceBase {
     return when (layer) {
-        MapLayer.DARK -> CARTO_DARK
+        MapLayer.ROADS -> GOOGLE_ROADS
         MapLayer.SATELLITE -> GOOGLE_SATELLITE
         MapLayer.HYBRID -> GOOGLE_HYBRID
-        MapLayer.TERRAIN -> GOOGLE_TERRAIN
-        MapLayer.ROADS -> GOOGLE_ROADS
-        MapLayer.TOPO -> OPEN_TOPO
-        MapLayer.CYCLING -> CYCLOSM
-        MapLayer.ESRI -> ESRI_SATELLITE
     }
 }
 
@@ -193,7 +183,7 @@ fun OsmMapView(
     latitude: Double,
     longitude: Double,
     zoom: Double = 16.0,
-    mapLayer: MapLayer = MapLayer.DARK,
+    mapLayer: MapLayer = MapLayer.ROADS,
     routePoints: List<Pair<Double, Double>> = emptyList(),
     accuracyMeters: Float = 10f,
     onLocationSelected: (Double, Double) -> Unit

@@ -52,16 +52,19 @@ object LocationHook {
 
     private fun loadCoordinates(prefs: XSharedPreferences?) {
         prefs?.reload()
-        fakeLat = java.lang.Double.longBitsToDouble(
-            prefs?.getLong("fake_lat", java.lang.Double.doubleToLongBits(24.7136)) ?: java.lang.Double.doubleToLongBits(24.7136)
-        )
-        fakeLng = java.lang.Double.longBitsToDouble(
-            prefs?.getLong("fake_lng", java.lang.Double.doubleToLongBits(46.6753)) ?: java.lang.Double.doubleToLongBits(46.6753)
-        )
-        fakeAlt = java.lang.Double.longBitsToDouble(
-            prefs?.getLong("fake_alt", java.lang.Double.doubleToLongBits(612.0)) ?: java.lang.Double.doubleToLongBits(612.0)
-        )
-        fakeAccuracy = prefs?.getFloat("fake_accuracy", 3.5f) ?: 3.5f
+        
+        // قراءة الإحداثيات كـ String ثم تحويلها
+        val latStr = prefs?.getString("spoof_lat", "24.7136") ?: "24.7136"
+        val lngStr = prefs?.getString("spoof_lng", "46.6753") ?: "46.6753"
+        val altStr = prefs?.getString("spoof_alt", "612.0") ?: "612.0"
+        val accStr = prefs?.getString("spoof_accuracy", "3.5") ?: "3.5"
+        
+        fakeLat = latStr.toDoubleOrNull() ?: 24.7136
+        fakeLng = lngStr.toDoubleOrNull() ?: 46.6753
+        fakeAlt = altStr.toDoubleOrNull() ?: 612.0
+        fakeAccuracy = accStr.toFloatOrNull() ?: 3.5f
+        
+        MainHook.log("📍 Coordinates loaded: $fakeLat, $fakeLng")
     }
 
     /**

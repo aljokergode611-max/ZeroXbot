@@ -9,64 +9,117 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// ألوان Zero X - مستوحاة من الأيقونة
-val ZeroXRed = Color(0xFFCC0033)
-val ZeroXRedDark = Color(0xFF8B0022)
-val ZeroXRedGlow = Color(0xFFFF0040)
-val HackerGreen = Color(0xFF00FF41)
-val HackerGreenDark = Color(0xFF00CC33)
-val HackerGreenDim = Color(0xFF00AA28)
-val HackerCyan = Color(0xFF00FFFF)
-val HackerRed = Color(0xFFFF0040)
-val HackerOrange = Color(0xFFFF6600)
-val HackerYellow = Color(0xFFFFFF00)
-val HackerPurple = Color(0xFFBB00FF)
-val DarkBg = Color(0xFF080808)
-val DarkSurface = Color(0xFF0E0E0E)
-val DarkCard = Color(0xFF151515)
-val DarkCardBorder = Color(0xFF00FF41).copy(alpha = 0.15f)
-val TerminalGreen = Color(0xFF33FF33)
-val GlowGreen = Color(0xFF00FF41)
-val GlowRed = Color(0xFFFF0040)
+// ============ Modern Professional Theme ============
+// ثيم احترافي حديث مستوحى من Material Design 3
 
-private val ZeroXColorScheme = darkColorScheme(
-    primary = HackerGreen,
-    onPrimary = Color.Black,
-    primaryContainer = Color(0xFF002200),
-    onPrimaryContainer = HackerGreen,
-    secondary = ZeroXRed,
+// Primary Colors - أزرق احترافي
+val ModernBlue = Color(0xFF2196F3)
+val ModernBlueDark = Color(0xFF1976D2)
+val ModernBlueLight = Color(0xFF64B5F6)
+
+// Accent Colors - أخضر نضر
+val ModernGreen = Color(0xFF4CAF50)
+val ModernGreenDark = Color(0xFF388E3C)
+val ModernGreenLight = Color(0xFF81C784)
+
+// Neutral Colors - رمادي احترافي
+val LightBg = Color(0xFFF5F7FA)
+val LightSurface = Color(0xFFFFFFFF)
+val LightCard = Color(0xFFFFFFFF)
+val BorderLight = Color(0xFFE0E0E0)
+val TextPrimary = Color(0xFF1A1A1A)
+val TextSecondary = Color(0xFF666666)
+val TextTertiary = Color(0xFF999999)
+
+// Status Colors
+val SuccessGreen = Color(0xFF4CAF50)
+val WarningOrange = Color(0xFFFF9800)
+val ErrorRed = Color(0xFFF44336)
+val InfoBlue = Color(0xFF2196F3)
+
+// Map Colors
+val MapAccent = Color(0xFF2196F3)
+val MapMarker = Color(0xFFE91E63)
+
+// Modern Light Color Scheme
+private val ModernLightColorScheme = lightColorScheme(
+    primary = ModernBlue,
+    onPrimary = Color.White,
+    primaryContainer = ModernBlueLight,
+    onPrimaryContainer = ModernBlueDark,
+    
+    secondary = ModernGreen,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFF330011),
-    onSecondaryContainer = ZeroXRedGlow,
-    tertiary = HackerCyan,
-    onTertiary = Color.Black,
-    error = HackerRed,
+    secondaryContainer = ModernGreenLight,
+    onSecondaryContainer = ModernGreenDark,
+    
+    tertiary = Color(0xFF6200EE),
+    onTertiary = Color.White,
+    
+    error = ErrorRed,
     onError = Color.White,
-    background = DarkBg,
-    onBackground = HackerGreen,
-    surface = DarkSurface,
-    onSurface = Color(0xFFBBBBBB),
-    surfaceVariant = DarkCard,
-    onSurfaceVariant = Color(0xFF888888),
-    outline = DarkCardBorder,
+    
+    background = LightBg,
+    onBackground = TextPrimary,
+    
+    surface = LightSurface,
+    onSurface = TextPrimary,
+    surfaceVariant = Color(0xFFF0F0F0),
+    onSurfaceVariant = TextSecondary,
+    
+    outline = BorderLight,
+    outlineVariant = Color(0xFFEEEEEE),
 )
 
 @Composable
 fun OXTheme(content: @Composable () -> Unit) {
-    val colorScheme = ZeroXColorScheme
+    val colorScheme = ModernLightColorScheme
     val view = LocalView.current
 
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = DarkBg.toArgb()
-            window.navigationBarColor = DarkBg.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            window.statusBarColor = LightBg.toArgb()
+            window.navigationBarColor = Color.White.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = true
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = ModernTypography,
         content = content
     )
 }
+
+// Modern Typography
+val ModernTypography = Typography(
+    displayLarge = Typography().displayLarge.copy(color = TextPrimary),
+    displayMedium = Typography().displayMedium.copy(color = TextPrimary),
+    displaySmall = Typography().displaySmall.copy(color = TextPrimary),
+    headlineLarge = Typography().headlineLarge.copy(color = TextPrimary),
+    headlineMedium = Typography().headlineMedium.copy(color = TextPrimary),
+    headlineSmall = Typography().headlineSmall.copy(color = TextPrimary),
+    titleLarge = Typography().titleLarge.copy(color = TextPrimary),
+    titleMedium = Typography().titleMedium.copy(color = TextPrimary),
+    titleSmall = Typography().titleSmall.copy(color = TextPrimary),
+    bodyLarge = Typography().bodyLarge.copy(color = TextPrimary),
+    bodyMedium = Typography().bodyMedium.copy(color = TextSecondary),
+    bodySmall = Typography().bodySmall.copy(color = TextSecondary),
+    labelLarge = Typography().labelLarge.copy(color = TextPrimary),
+    labelMedium = Typography().labelMedium.copy(color = TextSecondary),
+    labelSmall = Typography().labelSmall.copy(color = TextTertiary),
+)
+
+// Legacy color exports for compatibility
+val ZeroXRed = ErrorRed
+val ZeroXRedGlow = ErrorRed
+val HackerGreen = ModernGreen
+val HackerCyan = InfoBlue
+val HackerRed = ErrorRed
+val DarkBg = LightBg
+val DarkSurface = LightSurface
+val DarkCard = LightCard
+val TerminalGreen = ModernGreen
+val GlowGreen = ModernGreen

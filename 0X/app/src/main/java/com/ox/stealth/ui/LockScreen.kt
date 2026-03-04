@@ -36,7 +36,7 @@ import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 /**
- * شاشة القفل - تصميم Zero X هاكر
+ * شاشة القفل - تصميم Material Design 3 الحديث
  * رمز القفل: 911900
  */
 @Composable
@@ -51,166 +51,156 @@ fun LockScreen(onUnlock: () -> Unit) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // خلفية Matrix
-        MatrixRainBackground()
-
-        // طبقة شفافة فوق Matrix
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.88f)),
-            contentAlignment = Alignment.Center
-        ) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // شعار Zero X - الأيقونة الأصلية
-                    ZeroXLogo()
-
-                    // عنوان
-                    Text(
-                        text = "ZERO X",
-                        style = TextStyle(
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Black,
-                            color = ZeroXRed,
-                            shadow = Shadow(
-                                color = ZeroXRedGlow.copy(alpha = 0.6f),
-                                offset = Offset(0f, 0f),
-                                blurRadius = 15f
-                            ),
-                            fontFamily = FontFamily.Monospace,
-                            letterSpacing = 6.sp
-                        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFE3F2FD),
+                        Color(0xFFBBDEFB),
+                        Color(0xFF90CAF9)
                     )
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier.padding(horizontal = 32.dp)
+            ) {
+                // شعار Zero X الحديث
+                ModernLogo()
 
-                    Text(
-                        text = "وحدة التخفي",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = HackerGreen.copy(alpha = 0.7f),
-                            fontFamily = FontFamily.Monospace,
-                            textDirection = TextDirection.Rtl,
-                            letterSpacing = 2.sp
-                        )
+                // عنوان
+                Text(
+                    text = "ZERO X",
+                    style = MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Black,
+                        color = ModernBlue,
+                        letterSpacing = 3.sp
                     )
+                )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "وحدة التخفي المتقدمة",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = TextSecondary,
+                        textDirection = TextDirection.Rtl
+                    )
+                )
 
-                    // صندوق إدخال الرمز
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0xFF0A0A0A))
-                            .border(
-                                1.dp,
-                                if (isError) HackerRed.copy(alpha = 0.5f)
-                                else HackerGreen.copy(alpha = 0.15f),
-                                RoundedCornerShape(16.dp)
-                            )
-                            .padding(vertical = 20.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = "[ أدخل رمز الوصول ]",
-                                style = TextStyle(
-                                    fontSize = 13.sp,
-                                    color = if (isError) HackerRed else HackerGreen.copy(alpha = 0.6f),
-                                    fontFamily = FontFamily.Monospace,
-                                    textDirection = TextDirection.Rtl
-                                )
-                            )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                            // نقاط الرمز
-                            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
-                                ) {
-                                    repeat(6) { index ->
-                                        val isFilled = index < enteredCode.length
-                                        Box(
-                                            modifier = Modifier
-                                                .size(18.dp)
-                                                .clip(CircleShape)
-                                                .then(
-                                                    if (isFilled) {
-                                                        Modifier.background(
-                                                            if (isError) HackerRed else HackerGreen
-                                                        )
-                                                    } else {
-                                                        Modifier
-                                                            .background(Color(0xFF1A1A1A))
-                                                            .border(
-                                                                1.dp,
-                                                                HackerGreen.copy(alpha = 0.2f),
-                                                                CircleShape
-                                                            )
-                                                    }
-                                                )
-                                        )
+                // صندوق إدخال الرمز الحديث
+                ModernCodeBox(
+                    enteredCode = enteredCode,
+                    isError = isError
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // لوحة الأرقام الحديثة
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    ModernKeypad(
+                        onDigit = { digit ->
+                            isError = false
+                            if (enteredCode.length < 6) {
+                                enteredCode += digit
+                                if (enteredCode.length == 6) {
+                                    if (enteredCode == MainActivity.LOCK_CODE) {
+                                        onUnlock()
+                                    } else {
+                                        isError = true
+                                        enteredCode = ""
                                     }
                                 }
                             }
-
-                            if (isError) {
-                                Text(
-                                    text = "⛔ تم رفض الوصول",
-                                    color = HackerRed,
-                                    fontSize = 12.sp,
-                                    fontFamily = FontFamily.Monospace,
-                                    style = TextStyle(textDirection = TextDirection.Rtl)
-                                )
+                        },
+                        onDelete = {
+                            if (enteredCode.isNotEmpty()) {
+                                enteredCode = enteredCode.dropLast(1)
                             }
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // لوحة الأرقام
-                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                        HackerKeypad(
-                            onDigit = { digit ->
-                                isError = false
-                                if (enteredCode.length < 6) {
-                                    enteredCode += digit
-                                    if (enteredCode.length == 6) {
-                                        if (enteredCode == MainActivity.LOCK_CODE) {
-                                            onUnlock()
-                                        } else {
-                                            isError = true
-                                            enteredCode = ""
-                                        }
-                                    }
-                                }
-                            },
-                            onDelete = {
-                                if (enteredCode.isNotEmpty()) {
-                                    enteredCode = enteredCode.dropLast(1)
-                                }
-                            }
-                        )
-                    }
-
-                    // تحذير
-                    Text(
-                        text = "⚠ الوصول غير المصرح به ممنوع",
-                        color = ZeroXRed.copy(alpha = 0.5f),
-                        fontSize = 10.sp,
-                        fontFamily = FontFamily.Monospace,
-                        style = TextStyle(textDirection = TextDirection.Rtl)
                     )
+                }
+
+                // تحذير بسيط
+                Text(
+                    text = "⚠ الوصول غير المصرح به ممنوع",
+                    color = TextTertiary,
+                    fontSize = 11.sp,
+                    style = TextStyle(textDirection = TextDirection.Rtl)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ModernLogo() {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        shadowElevation = 8.dp,
+        modifier = Modifier.size(120.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_zerox),
+                contentDescription = "Zero X Logo",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        }
+    }
+}
+
+@Composable
+fun ModernCodeBox(enteredCode: String, isError: Boolean) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(4.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Text(
+                text = if (isError) "❌ رمز خاطئ" else "أدخل رمز الوصول",
+                style = MaterialTheme.typography.titleSmall.copy(
+                    color = if (isError) ErrorRed else TextSecondary,
+                    textDirection = TextDirection.Rtl
+                )
+            )
+
+            // نقاط الرمز الحديثة
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    repeat(6) { index ->
+                        val isFilled = index < enteredCode.length
+                        Surface(
+                            shape = CircleShape,
+                            color = when {
+                                isError -> ErrorRed.copy(alpha = 0.1f)
+                                isFilled -> ModernBlue
+                                else -> LightBg
+                            },
+                            border = if (!isFilled) BorderStroke(2.dp, BorderLight) else null,
+                            modifier = Modifier.size(14.dp)
+                        ) {}
+                    }
                 }
             }
         }
@@ -218,46 +208,7 @@ fun LockScreen(onUnlock: () -> Unit) {
 }
 
 @Composable
-fun ZeroXLogo() {
-    val infiniteTransition = rememberInfiniteTransition(label = "logoGlow")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, easing = CubicBezierEasing(0.37f, 0f, 0.63f, 1f)),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "glowAlpha"
-    )
-
-    Box(
-        modifier = Modifier
-            .size(110.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .border(
-                2.dp,
-                Brush.linearGradient(
-                    colors = listOf(
-                        ZeroXRed.copy(alpha = glowAlpha),
-                        HackerGreen.copy(alpha = glowAlpha)
-                    )
-                ),
-                RoundedCornerShape(24.dp)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_zerox),
-            contentDescription = "Zero X Logo",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(20.dp))
-        )
-    }
-}
-
-@Composable
-fun HackerKeypad(onDigit: (String) -> Unit, onDelete: () -> Unit) {
+fun ModernKeypad(onDigit: (String) -> Unit, onDelete: () -> Unit) {
     val buttons = listOf(
         listOf("1", "2", "3"),
         listOf("4", "5", "6"),
@@ -265,10 +216,10 @@ fun HackerKeypad(onDigit: (String) -> Unit, onDelete: () -> Unit) {
         listOf("", "0", "DEL")
     )
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         buttons.forEach { row ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 row.forEach { label ->
@@ -281,90 +232,33 @@ fun HackerKeypad(onDigit: (String) -> Unit, onDelete: () -> Unit) {
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(56.dp)
-                                .border(
-                                    1.dp,
-                                    if (label == "DEL") ZeroXRed.copy(alpha = 0.2f)
-                                    else HackerGreen.copy(alpha = 0.1f),
-                                    RoundedCornerShape(12.dp)
-                                ),
-                            shape = RoundedCornerShape(12.dp),
+                                .height(64.dp),
+                            shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF0C0C0C),
-                                contentColor = if (label == "DEL") ZeroXRed else HackerGreen
+                                containerColor = Color.White,
+                                contentColor = if (label == "DEL") ErrorRed else ModernBlue
                             ),
-                            elevation = ButtonDefaults.buttonElevation(0.dp)
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 2.dp,
+                                pressedElevation = 8.dp
+                            )
                         ) {
                             if (label == "DEL") {
                                 Icon(
                                     Icons.Default.Backspace,
                                     contentDescription = "حذف",
-                                    tint = ZeroXRed.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(20.dp)
+                                    tint = ErrorRed,
+                                    modifier = Modifier.size(24.dp)
                                 )
                             } else {
                                 Text(
                                     text = label,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Monospace
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MatrixRainBackground() {
-    val columns = 25
-    val drops = remember {
-        mutableStateListOf<Float>().apply {
-            repeat(columns) { add(Random.nextFloat()) }
-        }
-    }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "matrix")
-    val tick by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(150, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "tick"
-    )
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val colWidth = size.width / columns
-
-        for (i in 0 until columns) {
-            val y = drops.getOrElse(i) { 0f } * size.height
-
-            // نقطة خضراء متوهجة
-            drawCircle(
-                color = HackerGreen.copy(alpha = 0.3f),
-                radius = 3f,
-                center = Offset(i * colWidth + colWidth / 2, y)
-            )
-
-            // ذيل خافت
-            for (j in 1..5) {
-                drawCircle(
-                    color = HackerGreen.copy(alpha = 0.05f * (5 - j)),
-                    radius = 2f,
-                    center = Offset(i * colWidth + colWidth / 2, y - j * 15f)
-                )
-            }
-
-            if (i < drops.size) {
-                drops[i] = if (drops[i] * size.height > size.height && Random.nextFloat() > 0.97f) {
-                    0f
-                } else {
-                    drops[i] + 0.008f
                 }
             }
         }

@@ -21,6 +21,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val PREFS_NAME = "ox_config"
         const val LOCK_CODE = "911900"
+        const val PREF_IS_UNLOCKED = "is_unlocked"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,10 +36,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OXTheme {
-                var isUnlocked by remember { mutableStateOf(false) }
+                // التحقق من حالة الفتح المحفوظة
+                var isUnlocked by remember { mutableStateOf(prefs.getBoolean(PREF_IS_UNLOCKED, false)) }
 
                 if (!isUnlocked) {
-                    LockScreen(onUnlock = { isUnlocked = true })
+                    LockScreen(onUnlock = { 
+                        isUnlocked = true
+                        // حفظ حالة الفتح
+                        prefs.edit().putBoolean(PREF_IS_UNLOCKED, true).apply()
+                    })
                 } else {
                     MainApp(prefs = prefs)
                 }
