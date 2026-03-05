@@ -1,5 +1,6 @@
 package com.ox.stealth.ui
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -210,10 +211,32 @@ fun LocationScreen(prefs: SharedPreferences, snackbarHostState: SnackbarHostStat
                     Button(
                         onClick = {
                             isSpoofActive = !isSpoofActive
-                            prefs.edit().putBoolean("location_enabled", isSpoofActive).apply()
+                            // حفظ الحالة مع تحديث الموقع
+                            prefs.edit().apply {
+                                putBoolean("location_enabled", isSpoofActive)
+                                if (isSpoofActive) {
+                                    // تأكد من حفظ الإحداثيات الحالية
+                                    putString("spoof_lat", "%.6f".format(lat))
+                                    putString("spoof_lng", "%.6f".format(lng))
+                                }
+                                apply()
+                            }
+                            // محاولة جعل الملف قابل للقراءة
+                            try {
+                                val prefsFile = java.io.File(LocalContext.current.applicationInfo.dataDir, 
+                                    "shared_prefs/ox_config.xml")
+                                prefsFile.setReadable(true, false)
+                            } catch (_: Exception) {}
+                            
                             scope.launch {
                                 snackbarHostState.showSnackbar(
-                                    if (isSpoofActive) "تم تفعيل تزييف الموقع ✓" else "تم إيقاف تزييف الموقع"
+                                    if (isSpoofActive) {
+                                        "✅ تم تفعيل تزييف الموقع\n📍 الموقع: %.4f, %.4f\n⚠️ أعد تشغيل التطبيقات المستهدفة"
+                                            .format(lat, lng)
+                                    } else {
+                                        "تم إيقاف تزييف الموقع"
+                                    },
+                                    duration = SnackbarDuration.Long
                                 )
                             }
                         },

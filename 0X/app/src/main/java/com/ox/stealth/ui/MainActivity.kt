@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.ox.stealth.ui.theme.OXTheme
+import java.io.File
 
 /**
  * 0X Stealth Module - Main Activity
@@ -28,10 +29,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // استخدام MODE_WORLD_READABLE للسماح لـ Xposed بقراءة الإعدادات
         val prefs = try {
+            @Suppress("DEPRECATION")
             getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)
         } catch (e: SecurityException) {
-            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).also {
+                // محاولة جعل الملف قابل للقراءة من الخارج
+                try {
+                    val prefsFile = File(applicationInfo.dataDir, "shared_prefs/$PREFS_NAME.xml")
+                    prefsFile.setReadable(true, false)
+                } catch (_: Exception) {}
+            }
         }
 
         setContent {

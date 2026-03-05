@@ -49,6 +49,14 @@ fun MainApp(prefs: SharedPreferences) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    
+    // إصلاح أذونات الملف عند بدء التطبيق
+    LaunchedEffect(Unit) {
+        try {
+            com.ox.stealth.util.PrefsDebugHelper.fixPrefsPermissions(context)
+        } catch (_: Exception) {}
+    }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Scaffold(
