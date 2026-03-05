@@ -62,6 +62,8 @@ object NaturalMovement {
     fun hook(lpparam: XC_LoadPackage.LoadPackageParam, prefs: XSharedPreferences?) {
         loadSettings(prefs)
         hookSensors(lpparam)
+        // تحميل الإحداثيات الأولية من LocationHook
+        initializeFromLocationHook(prefs)
         startMovementEngine()
     }
 
@@ -70,6 +72,17 @@ object NaturalMovement {
         jitterRadius = prefs?.getFloat("jitter_radius", 3.0f)?.toDouble() ?: 3.0
         val modeStr = prefs?.getString("movement_mode", "WALK") ?: "WALK"
         movementMode = try { MovementMode.valueOf(modeStr) } catch (_: Exception) { MovementMode.WALK }
+    }
+    
+    private fun initializeFromLocationHook(prefs: XSharedPreferences?) {
+        prefs?.reload()
+        val latStr = prefs?.getString("spoof_lat", "24.7136") ?: "24.7136"
+        val lngStr = prefs?.getString("spoof_lng", "46.6753") ?: "46.6753"
+        
+        currentLat = latStr.toDoubleOrNull() ?: 24.7136
+        currentLng = lngStr.toDoubleOrNull() ?: 46.6753
+        
+        MainHook.log("🚶 Natural Movement initialized at: $currentLat, $currentLng")
     }
 
     /**
@@ -83,7 +96,7 @@ object NaturalMovement {
                     val deltaTime = if (lastUpdateTime > 0) (now - lastUpdateTime) / 1000.0f else 0f
                     lastUpdateTime = now
 
-                    if (deltaTime > 0) {
+                    if (deltaTime > 0 && isMoving) {
                         // === تحديث السرعة بتسارع/تباطؤ طبيعي ===
                         updateSpeed(deltaTime)
 
@@ -102,6 +115,12 @@ object NaturalMovement {
                         // === تحديث LocationHook بالموقع الجديد ===
                         LocationHook.updateLocation(jitteredLat, jitteredLng)
                         LocationHook.updateMovement(currentSpeed, currentBearing)
+                    } else if (!isMoving) {
+                        // حتى بدون حركة، نضيف Jitter صغير جداً لمحاكاة GPS الطبيعي
+                        val microJitterLat = currentLat + (Math.random() - 0.5) * 0.00001 // ~1 متر
+                        val microJitterLng = currentLng + (Math.random() - 0.5) * 0.00001
+                        LocationHook.updateLocation(microJitterLat, microJitterLng)
+                        LocationHook.updateMovement(0f, currentBearing)
                     }
 
                     // تحديث كل 2-4 ثانية (أبطأ وأكثر واقعية)
@@ -113,6 +132,7 @@ object NaturalMovement {
         }.apply {
             isDaemon = true
             name = "0X-Movement"
+            priority = Thread.MIN_PRIORITY // أولوية منخفضة لتجنب الاكتشاف
             start()
         }
     }

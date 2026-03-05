@@ -306,55 +306,95 @@ object LocationHook {
     private fun hookGooglePlayServices(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
             // Hook FusedLocationProviderClient.getLastLocation()
-            val fusedClass = XposedHelpers.findClass(
+            val fusedClass = XposedHelpers.findClassIfExists(
                 "com.google.android.gms.location.FusedLocationProviderClient",
                 lpparam.classLoader
             )
-            for (method in fusedClass.declaredMethods) {
-                if (method.name == "getLastLocation" || method.name == "getCurrentLocation") {
-                    XposedBridge.hookMethod(method, object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            // النتيجة هي Task<Location>
-                            try {
-                                val task = param.result ?: return
-                                val resultField = task.javaClass.getDeclaredField("zzb")
-                                resultField.isAccessible = true
-                                resultField.set(task, createFakeLocation(LocationManager.FUSED_PROVIDER))
-                            } catch (_: Exception) {}
-                        }
-                    })
+            if (fusedClass != null) {
+                for (method in fusedClass.declaredMethods) {
+                    if (method.name == "getLastLocation" || method.name == "getCurrentLocation") {
+                        XposedBridge.hookMethod(method, object : XC_MethodHook() {
+                            override fun afterHookedMethod(param: MethodHookParam) {
+                                // النتيجة هي Task<Location>
+                                try {
+                                    val task = param.result ?: return
+                                    // Hook Task.addOnSuccessListener
+                                    XposedHelpers.findAndHookMethod(
+                                        task.javaClass, "addOnSuccessListener",
+                                        XposedHelpers.findClass("com.google.android.gms.tasks.OnSuccessListener", lpparam.classLoader),
+                                        object : XC_MethodHook() {
+                                            override fun beforeHookedMethod(listenerParam: MethodHookParam) {
+                                                val listener = listenerParam.args[0]
+                                                val fakeLocation = createFakeLocation(LocationManager.FUSED_PROVIDER)
+                                                try {
+                                                    XposedHelpers.callMethod(listener, "onSuccess", fakeLocation)
+                                                    listenerParam.result = task
+                                                } catch (_: Exception) {}
+                                            }
+                                        }
+                                    )
+                                } catch (_: Exception) {}
+                            }
+                        })
+                    }
                 }
             }
 
-            // Hook LocationCallback.onLocationResult
+            // Hook LocationCallback.onLocationResult - أقوى hook
             try {
-                XposedHelpers.findAndHookMethod(
+                val locationCallbackClass = XposedHelpers.findClassIfExists(
                     "com.google.android.gms.location.LocationCallback",
-                    lpparam.classLoader,
-                    "onLocationResult",
-                    XposedHelpers.findClass(
-                        "com.google.android.gms.location.LocationResult",
-                        lpparam.classLoader
-                    ),
-                    object : XC_MethodHook() {
-                        override fun beforeHookedMethod(param: MethodHookParam) {
-                            try {
-                                val locationResult = param.args[0] ?: return
-                                val locationsField = locationResult.javaClass.getDeclaredField("zzb")
-                                locationsField.isAccessible = true
-                                val locations = locationsField.get(locationResult) as? MutableList<Location>
-                                locations?.let {
-                                    it.clear()
-                                    it.add(createFakeLocation(LocationManager.FUSED_PROVIDER))
-                                }
-                            } catch (_: Exception) {}
-                        }
-                    }
+                    lpparam.classLoader
                 )
+                if (locationCallbackClass != null) {
+                    XposedHelpers.findAndHookMethod(
+                        locationCallbackClass,
+                        "onLocationResult",
+                        XposedHelpers.findClass(
+                            "com.google.android.gms.location.LocationResult",
+                            lpparam.classLoader
+                        ),
+                        object : XC_MethodHook() {
+                            override fun beforeHookedMethod(param: MethodHookParam) {
+                                try {
+                                    val locationResult = param.args[0] ?: return
+                                    // استبدال جميع Locations في النتيجة
+                                    val fakeLocations = mutableListOf(createFakeLocation(LocationManager.FUSED_PROVIDER))
+                                    XposedHelpers.setObjectField(locationResult, "zzb", fakeLocations)
+                                } catch (_: Exception) {
+                                    // إذا فشل، نحاول طريقة بديلة
+                                    try {
+                                        val locationResult = param.args[0]
+                                        val getLastLocationMethod = locationResult.javaClass.getMethod("getLastLocation")
+                                        val lastLocation = getLastLocationMethod.invoke(locationResult) as? Location
+                                        if (lastLocation != null) {
+                                            lastLocation.latitude = fakeLat
+                                            lastLocation.longitude = fakeLng
+                                            lastLocation.altitude = fakeAlt
+                                            lastLocation.accuracy = fakeAccuracy
+                                        }
+                                    } catch (_: Exception) {}
+                                }
+                            }
+                        }
+                    )
+                }
+            } catch (_: Exception) {}
+
+            // Hook LocationRequest - لاعتراض الطلبات
+            try {
+                val locationRequestClass = XposedHelpers.findClassIfExists(
+                    "com.google.android.gms.location.LocationRequest",
+                    lpparam.classLoader
+                )
+                if (locationRequestClass != null) {
+                    MainHook.log("✅ Google Play Services LocationRequest found and hooked")
+                }
             } catch (_: Exception) {}
 
         } catch (_: Exception) {
             // Google Play Services غير متوفر - نتجاهل
+            MainHook.log("⚠️ Google Play Services not available")
         }
     }
 

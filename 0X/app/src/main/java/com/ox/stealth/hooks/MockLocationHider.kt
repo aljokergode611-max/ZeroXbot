@@ -93,6 +93,9 @@ object MockLocationHider {
                         extras.remove("isMock")
                         extras.remove("mock")
                         extras.remove("mockLocation")
+                        // إزالة علامات إضافية قد تستخدمها التطبيقات
+                        extras.remove("satellites")
+                        extras.remove("networkLocationType")
                         param.result = extras
                     }
                 }
@@ -114,6 +117,45 @@ object MockLocationHider {
                     }
                 }
             )
+        } catch (_: Exception) {}
+        
+        // Hook Bundle.containsKey لمنع فحص وجود علامات Mock
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.os.Bundle", lpparam.classLoader,
+                "containsKey", String::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val key = param.args[0] as? String ?: return
+                        if (key == "mockProvider" || key == "isFromMockProvider" || 
+                            key == "isMock" || key == "mock" || key == "mockLocation") {
+                            param.result = false
+                        }
+                    }
+                }
+            )
+        } catch (_: Exception) {}
+        
+        // Hook Bundle.get* methods
+        try {
+            val getMethods = listOf("get", "getString", "getBoolean", "getSerializable")
+            for (methodName in getMethods) {
+                try {
+                    XposedHelpers.findAndHookMethod(
+                        "android.os.Bundle", lpparam.classLoader,
+                        methodName, String::class.java,
+                        object : XC_MethodHook() {
+                            override fun afterHookedMethod(param: MethodHookParam) {
+                                val key = param.args[0] as? String ?: return
+                                if (key == "mockProvider" || key == "isFromMockProvider" || 
+                                    key == "isMock" || key == "mock") {
+                                    param.result = null
+                                }
+                            }
+                        }
+                    )
+                } catch (_: Exception) {}
+            }
         } catch (_: Exception) {}
     }
 
